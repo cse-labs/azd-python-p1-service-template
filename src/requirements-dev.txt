@@ -1,0 +1,12 @@
+-r requirements.txt
+fastapi[all]
+black
+ruff
+pytest
+coverage
+pytest-cov
+pre-commit
+azure-identity
+azure.mgmt.subscription
+azure.mgmt.resource
+azure.mgmt.containerservice
