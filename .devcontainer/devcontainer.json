@@ -7,13 +7,31 @@
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/azure/azure-dev/azd:latest": {},
-		"ghcr.io/devcontainers/features/azure-cli:1.0.8": {}
+		"ghcr.io/devcontainers/features/azure-cli:latest": {},
+		"ghcr.io/devcontainers/features/github-cli:latest": {}
 	},
 
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
+			"files.watcherExclude": {
+				"**/venv/**": true,
+				"**/venv_old": true,
+				"**/staticfiles": true,
+				"**/package-lock*": true,
+				"**/dist": true,
+				"**/dev_media": true,
+				"**/local_junk": true,
+				"**/coverage": true,
+				"**/htmlcov": true,
+				"**/__pycache__": true,
+				"**/rust/**/target/**": true,
+				"**/.vscode/**": true,
+				"**/.mypy_cache/**": true,
+				"**/.git/**": true,
+				"**/tmp/**": true
+			},
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
 				"ms-python.python",
@@ -31,6 +49,7 @@
 				"python.linting.pylintArgs": [
 					"--disable=C0114,C0115,C0116"
 				],
+				"python.languageServer": "Pylance",
 				"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
 				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
 				"python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
@@ -46,7 +65,6 @@
 			}
 		}
 	},
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [5000],
 

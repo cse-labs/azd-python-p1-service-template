@@ -6,7 +6,10 @@ pytest
 coverage
 pytest-cov
 pre-commit
+pick
 azure-identity
 azure.mgmt.subscription
-azure.mgmt.resource
 azure.mgmt.containerservice
+azure.keyvault.secrets
+azure.mgmt.keyvault
+azure.mgmt.containerregistry
