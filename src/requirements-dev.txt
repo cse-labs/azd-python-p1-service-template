@@ -13,3 +13,5 @@ azure.mgmt.containerservice
 azure.keyvault.secrets
 azure.mgmt.keyvault
 azure.mgmt.containerregistry
+GitPython
+pyyaml

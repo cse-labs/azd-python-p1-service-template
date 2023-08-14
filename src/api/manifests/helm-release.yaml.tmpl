@@ -1,0 +1,38 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ${SERVICE_NAME}-istio-svc
+  namespace: bigbang
+spec:
+  chart:
+    spec:
+      chart: "./chart"
+      sourceRef:
+        kind: GitRepository
+        name: ${SERVICE_NAME}-istio-svc
+  install: {}
+  interval: 1m
+  targetNamespace: ${SERVICE_NAME}-istio-svc
+  dependsOn:
+    - name: istio
+      namespace: bigbang
+    - name: bigbang
+      namespace: bigbang
+  valuesFrom:
+    - kind: Secret
+      name: common-bb
+      valuesKey: values.yaml
+  values:
+    nameOverride: ${SERVICE_NAME}-istio-svc
+    fullnameOverride: ${SERVICE_NAME}-istio-svc
+    replicas: 1
+    istio:
+      gateways:
+      - 'istio-system/public'
+      hosts:
+      - '${SERVICE_NAME}-istio-svc.bigbang.dev'
+    image:
+      repository: ${SERVICE_API_IMAGE_NAME}
+      pullSecret: private-registry
+    service:
+      port: 5000

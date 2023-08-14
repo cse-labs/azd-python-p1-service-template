@@ -12,9 +12,12 @@ services:
   api:
     project: ./src
     language: py
+    k8s:
+      deploymentPath: api/manifests
+      namespace: bigbang
     host: aks
     hooks:
       postdeploy:
         shell: sh
         interactive: true
-        run: python3 src/hooks/postdeploy.py
+        run: python3 hooks/postdeploy.py

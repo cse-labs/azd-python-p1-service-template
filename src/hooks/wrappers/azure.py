@@ -8,11 +8,12 @@ from azure.mgmt.containerregistry import ContainerRegistryManagementClient
 
 AZD_ENVIRONMENT_NAME_RESOURCE_TAG = "azd-env-name"
 
+
 class AzureClient:
     """
     A client for interacting with Azure services.
 
-    This class provides methods for retrieving information about Azure resources, such as AKS 
+    This class provides methods for retrieving information about Azure resources, such as AKS
     clusters and GitHub PATs.
     """
 
@@ -53,8 +54,8 @@ class AzureClient:
             subscription_id (str): The ID of the Azure subscription.
 
         Returns:
-            ContainerServiceClient: A client object for managing Azure Kubernetes 
-            Service (AKS) clusters. Returns None if an error occurs while 
+            ContainerServiceClient: A client object for managing Azure Kubernetes
+            Service (AKS) clusters. Returns None if an error occurs while
             creating the client object.
         """
         try:
@@ -75,14 +76,15 @@ class AzureClient:
             List of ContainerRegistry objects, or None if an error occurred.
         """
         try:
-            container_registry_client = ContainerRegistryManagementClient(self._credential, \
-                subscription_id)
-            registries = container_registry_client.registries.\
-                list_by_resource_group(resource_group_name)
+            container_registry_client = ContainerRegistryManagementClient(self._credential, subscription_id)
+            registries = container_registry_client.registries.list_by_resource_group(resource_group_name)
 
-            reduced_registries = [registry for registry in registries \
-                if AZD_ENVIRONMENT_NAME_RESOURCE_TAG in registry.tags \
-                    and registry.tags.get(AZD_ENVIRONMENT_NAME_RESOURCE_TAG)]
+            reduced_registries = [
+                registry
+                for registry in registries
+                if AZD_ENVIRONMENT_NAME_RESOURCE_TAG in registry.tags
+                and registry.tags.get(AZD_ENVIRONMENT_NAME_RESOURCE_TAG)
+            ]
 
             if len(reduced_registries) == 0:
                 return None
@@ -105,56 +107,74 @@ class AzureClient:
         try:
             container_service_client = self.get_container_service_client(subscription_id)
             aks_clusters = container_service_client.managed_clusters.list()
-            return [cluster for cluster in aks_clusters \
-                if AZD_ENVIRONMENT_NAME_RESOURCE_TAG in cluster.tags \
-                    and cluster.tags.get(AZD_ENVIRONMENT_NAME_RESOURCE_TAG)]
+            return [
+                cluster
+                for cluster in aks_clusters
+                if AZD_ENVIRONMENT_NAME_RESOURCE_TAG in cluster.tags
+                and cluster.tags.get(AZD_ENVIRONMENT_NAME_RESOURCE_TAG)
+            ]
         except (HttpResponseError, ClientAuthenticationError) as exc:
             print(f"Error occurred while getting AKS clusters: {exc}")
             return None
 
-    def get_gitops_repo_pat_token(self, azd_env_name, subscription_id, resource_group_name):
+    def get_keyvault(self, azd_env_name, subscription_id, resource_group_name):
         """
-        Retrieves the GitHub Personal Access Token (PAT) from Azure Key Vault for the specified 
-        Azure DevOps environment.
+        Returns the Software Factory KeyVault within the specified resource group.
 
         Args:
-            azd_env_name (str): The name of the Azure DevOps environment.
-            subscription_id (str): The Azure subscription ID.
-            resource_group_name (str): The name of the Azure resource group.
+            azd_env_name (str): The name of the AZD environment.
+            subscription_id (str): The ID of the Azure subscription.
+            resource_group_name (str): The name of the resource group.
 
         Returns:
-            str: The GitHub PAT value retrieved from Azure Key Vault, or None if an error occurred.
+            A KeyVault object, or None if an error occurred.
         """
         try:
             kv_client = KeyVaultManagementClient(self._credential, subscription_id)
-
-            if kv_client is None:
-                raise ValueError("KeyVaultManagementClient is None")
-
-            reduced_keyvaults = [keyvault for keyvault in kv_client.vaults.list() \
-                if self._parse_resource_group_from_id(keyvault.id) == resource_group_name \
-                    and AZD_ENVIRONMENT_NAME_RESOURCE_TAG in keyvault.tags \
-                    and keyvault.tags.get(AZD_ENVIRONMENT_NAME_RESOURCE_TAG) == azd_env_name]
+            reduced_keyvaults = [
+                keyvault
+                for keyvault in kv_client.vaults.list()
+                if self._parse_resource_group_from_id(keyvault.id) == resource_group_name
+                and AZD_ENVIRONMENT_NAME_RESOURCE_TAG in keyvault.tags
+                and keyvault.tags.get(AZD_ENVIRONMENT_NAME_RESOURCE_TAG) == azd_env_name
+            ]
 
             if len(reduced_keyvaults) == 0:
                 raise ValueError(f"No KeyVaults found for environment: {azd_env_name}")
 
-            azd_keyvault = reduced_keyvaults[0]
-            vault_details = kv_client.vaults.get(resource_group_name, azd_keyvault.name)
+            return kv_client.vaults.get(resource_group_name, reduced_keyvaults[0].name)
+        except (HttpResponseError, ClientAuthenticationError, ValueError) as exc:
+            print(f"Error occurred while getting KeyVaults: {exc}")
+            return None
+
+    def get_keyvault_secret(self, keyvault, secret_name):
+        """
+        Retrieves the specified secret from the specified Azure Key Vault.
+
+        Args:
+            keyvault (KeyVault): The KeyVault object representing the Azure Key 
+            Vault to retrieve the secret from.
+            secret_name (str): The name of the secret to retrieve.
+
+        Returns:
+            str: The value of the specified secret, or None if an error occurred.
+        """
+        try:
+            if keyvault is None:
+                raise ValueError("KeyVault is None")
+
             # Get the secret from the keyvault
-            secret_client = SecretClient(vault_url=vault_details.properties.vault_uri, \
-                credential=self._credential)
+            secret_client = SecretClient(vault_url=keyvault.properties.vault_uri, \
+                                         credential=self._credential)
             if secret_client is None:
                 raise ValueError("SecretClient is None")
-
-            secret_name = "githubToken"
 
             # Get the secret value
             secret = secret_client.get_secret(secret_name)
 
             # Return the secret value
             return secret.value
-        except (HttpResponseError, ClientAuthenticationError, ValueError, \
-                ResourceNotFoundError) as exc:
-            print(f"Error occurred while getting KeyVault: {exc}")
+        except (HttpResponseError, ClientAuthenticationError, \
+                ValueError, ResourceNotFoundError) as exc:
+            print(f"Error occurred while getting the KeyVault secret {secret_name}: {exc}")
             return None

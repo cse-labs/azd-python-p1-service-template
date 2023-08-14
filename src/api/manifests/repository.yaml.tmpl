@@ -1,0 +1,14 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: ${SERVICE_NAME}-istio-svc
+  namespace: bigbang
+  labels:
+    app.kubernetes.io/name: ${SERVICE_NAME}-istio-svc
+    app.kubernetes.io/component: "service"
+spec:
+  interval: 1m
+  url: https://github.com/csemissionplatformops/big-bang-istio-service.git
+  ref:
+    branch: main
+    tag: 0.0.10
