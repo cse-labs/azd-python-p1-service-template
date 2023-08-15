@@ -1,7 +1,10 @@
+namespace: ${SERVICE_NAME}-istio-svc
+
 resources:
   - namespace.yaml
   - repository.yaml
   - helm-release.yaml
+  - copy-credentials.yaml
 
 configMapGenerator:
   - name: common

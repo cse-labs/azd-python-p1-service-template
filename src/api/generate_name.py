@@ -7,7 +7,7 @@ from .data import names
 bp = Blueprint("names", __name__)
 
 
-@bp.route("/generate_name")
+@bp.route("/")
 def generate_name():
     starts_with = request.args.get("starts_with")
     name_choices = names

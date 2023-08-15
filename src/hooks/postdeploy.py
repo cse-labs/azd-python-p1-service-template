@@ -22,6 +22,9 @@ def set_env_from_azd():
         os.environ[key] = value
 
 def get_services_to_deploy(yaml_template) -> dict:
+    """
+    Parses the yaml file and returns a dictionary containing the services to deploy.
+    """
     template_file = os.path.join(CWD, yaml_template)
 
     with open(template_file, "r", encoding="utf-8") as stream:
@@ -37,6 +40,9 @@ def get_services_to_deploy(yaml_template) -> dict:
             print("Error loading yaml file: ", ex)
 
 def pre_req_assertions(deployment_template):
+    """
+    Asserts that the required environment variables and files exist.
+    """
     azure_dir = os.path.join(CWD, ".azure")
     template_file = os.path.join(CWD, deployment_template)
 
@@ -53,6 +59,15 @@ def pre_req_assertions(deployment_template):
             "The template_dir folder does not exist. Please run 'azd init'"
         )
 
+    if os.environ.get("SERVICE_API_IMAGE_NAME") is None:
+        raise ValueError(
+            "No SERVICE_API_IMAGE_NAME environment variable found. Please set the \
+        SERVICE_API_IMAGE_NAME environment variable."
+        )
+
+    os.environ['SERVICE_API_IMAGE_REPO'] = os.environ['SERVICE_API_IMAGE_NAME'].split(':')[0]
+    os.environ['SERVICE_API_IMAGE_TAG'] = os.environ['SERVICE_API_IMAGE_NAME'].split(':')[1]
+
 def copy_manifest_dir_tree_to_repo(manifest_path, repo_path):
     """
     Recursively searches for files ending with a .tmpl extension under manifest_path
@@ -67,8 +82,8 @@ def copy_manifest_dir_tree_to_repo(manifest_path, repo_path):
 if __name__ == "__main__":
     print("Post-Deplouy hook running...")
 
-    pre_req_assertions(TEMPLATE_FILE)
     set_env_from_azd()
+    pre_req_assertions(TEMPLATE_FILE)
     environment_name = os.environ.get("AZURE_AKS_ENVIRONMENT_NAME")
     git_client = GithubClient()
 

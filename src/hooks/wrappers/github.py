@@ -4,7 +4,14 @@ import tempfile
 import git
 
 class GithubClient:
+    """
+    A class that provides methods for interacting with the GitHub API 
+    and performing common Git operations.
+    """
     def login(self):
+        """
+        Logs in to GitHub using either the GITHUB_TOKEN environment variable or the gh CLI.
+        """
         gh_pat = os.environ.get("GITHUB_TOKEN")
 
         if gh_pat is None:
@@ -19,6 +26,9 @@ class GithubClient:
         os.environ["GITHUB_TOKEN"] = gh_pat
 
     def __login_with_pat(self, gh_pat):
+        """
+        Logs in to GitHub using a personal access token (PAT).
+        """
         with tempfile.TemporaryDirectory() as td_hndl:
             token_file = os.path.join(td_hndl, 'token')
             with open(token_file, 'w', encoding="utf-8") as file_hndl:
@@ -27,6 +37,9 @@ class GithubClient:
                 self.__run_gh_cli_command("auth", ["login", f"--with-token < {token_file}"])
 
     def clone_repo(self, repo_name, target_branch, directory):
+        """
+        Clones a GitHub repository to a local directory.
+        """
         if repo_name is None:
             raise ValueError("repo_name cannot be None")
 
@@ -38,6 +51,9 @@ class GithubClient:
             print(f"Error cloning repo {repo_name}: Exception: {ex}")
 
     def push_changes(self, repo_dir, commit_message):
+        """
+        Pushes changes to a GitHub repository.
+        """
         if repo_dir is None:
             raise ValueError("repo_dir cannot be None")
 
@@ -53,6 +69,9 @@ class GithubClient:
             print(f"Error pushing changes: Exception: {ex}")
 
     def __run_command(self, command):
+        """
+        Runs a command in the shell and returns its output.
+        """
         try:
             output = subprocess.check_output(command, stderr=subprocess.STDOUT, \
                                              universal_newlines=True, shell=True)
@@ -60,9 +79,15 @@ class GithubClient:
         except subprocess.CalledProcessError as ex:
             print(f"Error: {ex.output}")
             return None
-            
+
     def __run_gh_cli_command(self, command, args):
+        """
+        Runs a command in the gh CLI and returns its output.
+        """
         return self.__run_command(["gh", command] + args)
 
     def __unset_gh_pat(self):
+        """
+        Unsets the GITHUB_TOKEN environment variable.
+        """
         del os.environ["GITHUB_TOKEN"]
