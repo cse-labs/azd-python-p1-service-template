@@ -1,16 +1,5 @@
-nameOverride: ${SERVICE_NAME}-istio-svc
-fullnameOverride: ${SERVICE_NAME}-istio-svc
 replicas: 1
 
-istio:
-  gateways:
-  - 'istio-system/public'
-  hosts:
-  - '${SERVICE_NAME}-istio-svc.bigbang.dev'
-
 image:
-  repository: ${SERVICE_API_IMAGE_NAME}
-  pullSecret: private-registry
-
-service:
-  port: 5000
+  repository: ${SERVICE_API_IMAGE_REPO}
+  tag: ${SERVICE_API_IMAGE_TAG}

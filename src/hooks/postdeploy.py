@@ -53,6 +53,15 @@ def pre_req_assertions(deployment_template):
             "The template_dir folder does not exist. Please run 'azd init'"
         )
 
+    if os.environ.get("SERVICE_API_IMAGE_NAME") is None:
+        raise ValueError(
+            "No SERVICE_API_IMAGE_NAME environment variable found. Please set the \
+        SERVICE_API_IMAGE_NAME environment variable."
+        )
+
+    os.environ['SERVICE_API_IMAGE_REPO'] = os.environ['SERVICE_API_IMAGE_NAME'].split(':')[0]
+    os.environ['SERVICE_API_IMAGE_TAG'] = os.environ['SERVICE_API_IMAGE_NAME'].split(':')[1]
+
 def copy_manifest_dir_tree_to_repo(manifest_path, repo_path):
     """
     Recursively searches for files ending with a .tmpl extension under manifest_path
