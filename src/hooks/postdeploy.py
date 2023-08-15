@@ -7,6 +7,7 @@ from wrappers.github import GithubClient
 from wrappers.renderer import RenderEngine
 
 TEMPLATE_FILE = "azure.yaml"
+CWD = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
 def set_env_from_azd():
     """
@@ -21,7 +22,7 @@ def set_env_from_azd():
         os.environ[key] = value
 
 def get_services_to_deploy(yaml_template) -> dict:
-    template_file = os.path.join(os.getcwd(), yaml_template)
+    template_file = os.path.join(CWD, yaml_template)
 
     with open(template_file, "r", encoding="utf-8") as stream:
         try:
@@ -29,20 +30,20 @@ def get_services_to_deploy(yaml_template) -> dict:
             yaml_dict = yaml.safe_load(stream)
 
             if "services" not in yaml_dict:
-                raise ValueError("No services found in yaml file.")
+                raise ValueError(f"No services found in yaml file {template_file}.")
 
             return yaml_dict["services"]
         except yaml.YAMLError as ex:
             print("Error loading yaml file: ", ex)
 
 def pre_req_assertions(deployment_template):
-    azure_dir = os.path.join(os.getcwd(), ".azure")
-    template_file = os.path.join(os.getcwd(), deployment_template)
+    azure_dir = os.path.join(CWD, ".azure")
+    template_file = os.path.join(CWD, deployment_template)
 
     # verify that the .azure folder exists
     if not os.path.exists(azure_dir):
         raise ValueError(
-            "The .azure folder does not exist. Please run 'azd init' \
+            f"The .azure folder in {azure_dir} does not exist. Please run 'azd init' \
                          to setup your environment."
         )
 
@@ -108,11 +109,15 @@ if __name__ == "__main__":
                 and "deploymentPath" in services_to_deploy[service]["k8s"]:
                 manifest_dir = services_to_deploy[service]["k8s"]["deploymentPath"]
 
-            manifest_path = os.path.join(os.getcwd(), project_dir, manifest_dir)
-            service_render_path = os.path.join(git_clone_dir, "environments", \
-                environment_name, "src", "manifests", "services", service)
+            manifest_path = os.path.join(CWD, project_dir, manifest_dir)
+            gitops_environment_path = os.path.join(git_clone_dir, "environments", \
+                environment_name, "src", "manifests")
+            service_render_path = os.path.join(gitops_environment_path, "services", service)
             copy_manifest_dir_tree_to_repo(manifest_path, service_render_path)
-            render_client = RenderEngine(service_render_path)
+            render_client = RenderEngine(service_render_path, \
+                                         os.path.join(gitops_environment_path, \
+                                            "kustomization.yaml"), \
+                                            service)
             render_client.render()
             git_client.push_changes(git_clone_dir, f"Deployed service: {service}")
             print(f"Service {service} deployed successfully.")

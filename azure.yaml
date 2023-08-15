@@ -14,7 +14,7 @@ services:
     language: py
     k8s:
       deploymentPath: api/manifests
-      namespace: bigbang
+      namespace: apps
     host: aks
     hooks:
       postdeploy:
