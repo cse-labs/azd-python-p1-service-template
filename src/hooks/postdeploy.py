@@ -13,7 +13,7 @@ def set_env_from_azd():
     """
     Sets environment variables from the values returned by the 'azd env get-values' command.
     """
-    env_string = subprocess.check_output(["azd", "env", "get-values"], \
+    env_string = subprocess.check_output(["azd", "env", "get-values", "--cwd", CWD], \
         universal_newlines=True)
 
     for env_var in env_string.splitlines():

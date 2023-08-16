@@ -109,7 +109,8 @@ if __name__ == "__main__":
     set_azd_env_variable("AZURE_KEY_VAULT_ENDPOINT", bb_keyvault.properties.vault_uri)
     set_azd_env_variable("AZURE_KEY_VAULT_NAME", bb_keyvault.name)
     set_azd_env_variable("AZURE_RESOURCE_GROUP", resource_group_name)
-    set_azd_env_variable("AZURE_AKS_ENVIRONMENT_NAME", target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG])
+    set_azd_env_variable("AZURE_AKS_ENVIRONMENT_NAME", \
+        target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], True)
     set_azd_env_variable("AZURE_CONTAINER_REGISTRY_ENDPOINT", registry.login_server)
     set_azd_env_variable("GITOPS_REPO_RELEASE_BRANCH", \
         target_cluster.tags["gitops-release-branch"], True)
