@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: simple-bigbang-istio-service
+metadata:
+  template: simple-bigbang-istio-service@0.0.1-beta
+hooks:
+  preprovision:
+    interactive: true
+    shell: sh
+    run: python3 src/hooks/preprovision.py
+services:
+  api:
+    project: ./src
+    language: py
+    k8s:
+      deploymentPath: api/manifests
+      namespace: apps
+    host: aks
+    hooks:
+      postdeploy:
+        shell: sh
+        interactive: true
+        run: python3 hooks/postdeploy.py

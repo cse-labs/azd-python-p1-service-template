@@ -1,0 +1,17 @@
+-r requirements.txt
+fastapi[all]
+black
+ruff
+pytest
+coverage
+pytest-cov
+pre-commit
+pick
+azure-identity
+azure.mgmt.subscription
+azure.mgmt.containerservice
+azure.keyvault.secrets
+azure.mgmt.keyvault
+azure.mgmt.containerregistry
+GitPython
+pyyaml

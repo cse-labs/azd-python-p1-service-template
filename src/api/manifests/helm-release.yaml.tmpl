@@ -1,0 +1,23 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ${SERVICE_NAME}-istio-svc
+  namespace: bigbang
+spec:
+  chart:
+    spec:
+      chart: "./chart"
+      sourceRef:
+        kind: GitRepository
+        name: ${SERVICE_NAME}-istio-svc
+  install: {}
+  interval: 1m
+  targetNamespace: ${SERVICE_NAME}-istio-svc
+  dependsOn:
+    - name: istio
+      namespace: bigbang
+    - name: bigbang
+      namespace: bigbang
+  valuesFrom:
+  - kind: ConfigMap
+    name: common
