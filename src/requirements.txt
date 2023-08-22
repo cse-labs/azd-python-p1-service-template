@@ -1,3 +1,8 @@
 Flask==2.3.2
 requests==2.21.0
 randomname
+opencensus-ext-azure
+opencensus
+opencensus-ext-logging
+opencensus-ext-flask 
+gunicorn==21.2.0

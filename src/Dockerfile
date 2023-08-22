@@ -6,7 +6,7 @@ COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY . /app
+COPY . .
 
 EXPOSE 5000
-ENTRYPOINT [ "python3", "api/app.py" ]
+ENTRYPOINT ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]

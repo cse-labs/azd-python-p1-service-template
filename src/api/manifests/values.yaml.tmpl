@@ -1,5 +1,7 @@
 nameOverride: ${SERVICE_NAME}-istio-svc
 fullnameOverride: ${SERVICE_NAME}-istio-svc
+virtualServicePort: 5000
+
 replicas: 1
 
 istio:
@@ -14,3 +16,17 @@ image:
 
 service:
   port: 5000
+  
+secretStore:
+  enabled: true
+  keyvaultName: ${AZURE_KEY_VAULT_NAME}
+  tenantId: ${AZURE_TENANT_ID}
+  useVMManagedIdentity: "true"
+  usePodIdentity: "false"
+  cloudName: AzureCloud
+  secrets:
+  - envName: APPLICATIONINSIGHTS_CONNECTION_STRING
+    objectName: appInsightsConnectionString
+    alias: appsinsights
+  identity:
+    clientId: ${AZURE_AKS_KV_PROVIDER_CLIENT_ID}

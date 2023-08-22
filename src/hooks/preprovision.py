@@ -14,6 +14,22 @@ def prompt_user_for_target_clusters(clusters):
     Returns:
         ManagedCluster: The selected cluster.
     """
+
+    # If the AZURE_AKS_CLUSTER_NAME enviornment variable is set, use that to filter the \
+    # cluster from the clusters list
+    if os.environ.get("AZURE_AKS_CLUSTER_NAME") is not None:
+        cluster_name = os.environ.get("AZURE_AKS_CLUSTER_NAME")
+        clusters = [cluster for cluster in clusters if cluster.name == cluster_name]
+
+        if len(clusters) == 0:
+            raise ValueError(
+                f"No AKS clusters found with the name {cluster_name}. Please create \
+                    an AKS cluster and set the \
+            {AZD_ENVIRONMENT_NAME_RESOURCE_TAG} tag."
+            )
+
+        return clusters[0]
+
     title = "Select a Big Bang cluster for your deployment environment"
 
     options = [
@@ -81,6 +97,7 @@ if __name__ == "__main__":
         )
 
     target_cluster = prompt_user_for_target_clusters(clusters)
+    kubelet_identity = target_cluster.addon_profiles["azureKeyvaultSecretsProvider"].identity
     resource_group_name = target_cluster.id.split("/")[4]
     bb_keyvault = client.get_keyvault(
         target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], subscription_id, resource_group_name
@@ -95,6 +112,7 @@ if __name__ == "__main__":
     github_pat_token = client.get_keyvault_secret(bb_keyvault, "githubToken")
 
     registry = client.get_container_registry(subscription_id, resource_group_name)
+    tenant_id = bb_keyvault.properties.tenant_id
 
     if registry is None:
         raise ValueError(
@@ -108,9 +126,11 @@ if __name__ == "__main__":
     set_azd_env_variable("AZURE_AKS_CLUSTER_NAME", target_cluster.name)
     set_azd_env_variable("AZURE_KEY_VAULT_ENDPOINT", bb_keyvault.properties.vault_uri)
     set_azd_env_variable("AZURE_KEY_VAULT_NAME", bb_keyvault.name)
+    set_azd_env_variable("AZURE_AKS_KV_PROVIDER_CLIENT_ID", kubelet_identity.client_id)
     set_azd_env_variable("AZURE_RESOURCE_GROUP", resource_group_name)
     set_azd_env_variable("AZURE_AKS_ENVIRONMENT_NAME", \
         target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], True)
+    set_azd_env_variable("AZURE_TENANT_ID", tenant_id)
     set_azd_env_variable("AZURE_CONTAINER_REGISTRY_ENDPOINT", registry.login_server)
     set_azd_env_variable("GITOPS_REPO_RELEASE_BRANCH", \
         target_cluster.tags["gitops-release-branch"], True)

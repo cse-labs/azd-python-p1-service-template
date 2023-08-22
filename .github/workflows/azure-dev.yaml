@@ -1,0 +1,80 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'azure.yaml' 
+      - 'infra/**'
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/azure-dev.yml'
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITOPS_REPO: ${{ vars.GITOPS_REPO }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install azd
+        uses: Azure/setup-azd@v0.1.0
+      - name: pre validation
+        shell: bash
+        run: |
+            for varName in GITHUB_TOKEN AZURE_ENV_NAME AZURE_LOCATION AZURE_SUBSCRIPTION_ID GITOPS_REPO AZURE_TENANT_ID; do
+                varVal=$(eval echo "\${$varName}")
+                [[ -z $varVal ]] && {
+                echo "💥 Error! Required env variable or secret '$varName' is not set!"
+                envUnset=true
+            }
+            done
+            if [ "$envUnset" = true ]; then 
+                exit 1
+            fi
+
+      - name: Kubectl Install
+        uses: azure/setup-kubectl@v3
+
+      - name: Log in with Azure
+        if: ${{ env.AZURE_CLIENT_ID != '' }}
+        run: |
+            azd auth login --no-prompt `
+                --client-id "$Env:AZURE_CLIENT_ID" `
+                --federated-credential-provider "github" `
+                --tenant-id "$Env:AZURE_TENANT_ID"
+        shell: pwsh
+
+      - name: Azure login (for the preprovision script)
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+
+      - name: Github CLI install
+        run: |
+            type -p curl >/dev/null || apt install curl -y
+            sudo curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt update \
+            && sudo apt install gh jq gettext-base -y
+
+      - name: Azure Dev Provision
+        run: |
+            git config --global user.name github-actions
+            git config --global user.email github-actions@github.com
+
+            azd up --no-prompt
