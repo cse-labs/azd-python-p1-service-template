@@ -14,6 +14,22 @@ def prompt_user_for_target_clusters(clusters):
     Returns:
         ManagedCluster: The selected cluster.
     """
+
+    # If the AZURE_AKS_CLUSTER_NAME enviornment variable is set, use that to filter the \
+    # cluster from the clusters list
+    if os.environ.get("AZURE_AKS_CLUSTER_NAME") is not None:
+        cluster_name = os.environ.get("AZURE_AKS_CLUSTER_NAME")
+        clusters = [cluster for cluster in clusters if cluster.name == cluster_name]
+
+        if len(clusters) == 0:
+            raise ValueError(
+                f"No AKS clusters found with the name {cluster_name}. Please create \
+                    an AKS cluster and set the \
+            {AZD_ENVIRONMENT_NAME_RESOURCE_TAG} tag."
+            )
+
+        return clusters[0]
+
     title = "Select a Big Bang cluster for your deployment environment"
 
     options = [
