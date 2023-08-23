@@ -25,8 +25,10 @@ jobs:
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       GITOPS_REPO: ${{ vars.GITOPS_REPO }}
+      AZURE_AKS_CLUSTER_NAME: ${{ vars.AZURE_AKS_CLUSTER_NAME }}
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
       PYTHON_VERSION: 3.11.4
-      PYTHON_PIP_REQUIREMENTS: src/api/requirements-dev.txt
+      PYTHON_PIP_REQUIREMENTS: requirements-dev.txt
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -37,11 +39,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip' # caching pip dependencies
-      - run: pip install -r ${{ env.PYTHON_PIP_REQUIREMENTS }}
+      - name: Install Python Dependencies
+        working-directory: src
+        run: pip install -r ${{ env.PYTHON_PIP_REQUIREMENTS }}
       - name: pre validation
         shell: bash
         run: |
-            for varName in GITHUB_TOKEN AZURE_ENV_NAME AZURE_LOCATION AZURE_SUBSCRIPTION_ID AZURE_TENANT_ID; do
+            for varName in AZURE_KEY_VAULT_NAME GITHUB_TOKEN AZURE_ENV_NAME AZURE_AKS_CLUSTER_NAME AZURE_LOCATION AZURE_SUBSCRIPTION_ID AZURE_TENANT_ID; do
                 varVal=$(eval echo "\${$varName}")
                 [[ -z $varVal ]] && {
                 echo "💥 Error! Required env variable or secret '$varName' is not set!"
@@ -80,7 +84,7 @@ jobs:
             && sudo apt update \
             && sudo apt install gh jq gettext-base -y
 
-      - name: Azure Dev Provision + Deployment
+      - name: Azure Dev Provision
         run: |
             git config --global user.name github-actions
             git config --global user.email github-actions@github.com

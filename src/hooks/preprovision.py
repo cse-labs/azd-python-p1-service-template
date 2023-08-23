@@ -1,7 +1,7 @@
 import os
-import subprocess
 from pick import pick
-from wrappers.azure import AzureClient, AZD_ENVIRONMENT_NAME_RESOURCE_TAG
+from wrappers.azure import AzureClient, set_azd_env_variable, \
+    AZD_ENVIRONMENT_NAME_RESOURCE_TAG
 
 
 def prompt_user_for_target_clusters(clusters):
@@ -42,31 +42,6 @@ def prompt_user_for_target_clusters(clusters):
 
     return clusters[index - 1]
 
-
-def set_azd_env_variable(name, value, export=False):
-    """
-    Sets an Azure Developer CLI environment variable with the given name and value.
-
-    Args:
-        name (str): The name of the environment variable to set.
-        value (str): The value to set for the environment variable.
-
-    Returns:
-        None
-    """
-    print(f"Setting {name} environment variable...")
-    try:
-        standard_out = subprocess.check_output(["azd", "env", "set", name, value], \
-            universal_newlines=True)
-        print(standard_out)
-
-        if export:
-            os.environ[name] = value
-
-    except subprocess.CalledProcessError as ex:
-        print(f" Error: {ex.output}")
-
-
 if __name__ == "__main__":
     print("Pre-provisioning hook running...")
 
@@ -103,14 +78,6 @@ if __name__ == "__main__":
         target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], subscription_id, resource_group_name
     )
 
-    if bb_keyvault is None:
-        raise ValueError(
-            "No key vaults found. Please create a key vault and set the \
-        azd-keyvault-name tag."
-        )
-
-    github_pat_token = client.get_keyvault_secret(bb_keyvault, "githubToken")
-
     registry = client.get_container_registry(subscription_id, resource_group_name)
     tenant_id = bb_keyvault.properties.tenant_id
 
@@ -120,20 +87,17 @@ if __name__ == "__main__":
         and set the azd-container-registry-name tag."
         )
 
-    if github_pat_token is not None:
-        set_azd_env_variable("GITHUB_TOKEN", github_pat_token, True)
-
-    set_azd_env_variable("AZURE_AKS_CLUSTER_NAME", target_cluster.name)
-    set_azd_env_variable("AZURE_KEY_VAULT_ENDPOINT", bb_keyvault.properties.vault_uri)
-    set_azd_env_variable("AZURE_KEY_VAULT_NAME", bb_keyvault.name)
-    set_azd_env_variable("AZURE_AKS_KV_PROVIDER_CLIENT_ID", kubelet_identity.client_id)
-    set_azd_env_variable("AZURE_RESOURCE_GROUP", resource_group_name)
-    set_azd_env_variable("AZURE_AKS_ENVIRONMENT_NAME", \
+    client.set_azd_env_variable("AZURE_AKS_CLUSTER_NAME", target_cluster.name)
+    client.set_azd_env_variable("AZURE_KEY_VAULT_ENDPOINT", bb_keyvault.properties.vault_uri)
+    client.set_azd_env_variable("AZURE_KEY_VAULT_NAME", bb_keyvault.name)
+    client.set_azd_env_variable("AZURE_AKS_KV_PROVIDER_CLIENT_ID", kubelet_identity.client_id)
+    client.set_azd_env_variable("AZURE_RESOURCE_GROUP", resource_group_name)
+    client.set_azd_env_variable("AZURE_AKS_ENVIRONMENT_NAME", \
         target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], True)
-    set_azd_env_variable("AZURE_TENANT_ID", tenant_id)
-    set_azd_env_variable("AZURE_CONTAINER_REGISTRY_ENDPOINT", registry.login_server)
-    set_azd_env_variable("GITOPS_REPO_RELEASE_BRANCH", \
+    client.set_azd_env_variable("AZURE_TENANT_ID", tenant_id)
+    client.set_azd_env_variable("AZURE_CONTAINER_REGISTRY_ENDPOINT", registry.login_server)
+    client.set_azd_env_variable("GITOPS_REPO_RELEASE_BRANCH", \
         target_cluster.tags["gitops-release-branch"], True)
-    set_azd_env_variable("GITOPS_REPO", target_cluster.tags["gitops-repo"], True)
+    client.set_azd_env_variable("GITOPS_REPO", target_cluster.tags["gitops-repo"], True)
 
     print("Pre-provisioning hook complete.")

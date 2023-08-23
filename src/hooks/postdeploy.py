@@ -1,9 +1,10 @@
 import os
 import subprocess
 import tempfile
-import yaml
 import shutil
+import yaml
 from wrappers.github import GithubClient
+from wrappers.azure import AzureClient
 from wrappers.renderer import RenderEngine
 
 TEMPLATE_FILE = "azure.yaml"
@@ -68,6 +69,33 @@ def pre_req_assertions(deployment_template):
     os.environ['SERVICE_API_IMAGE_REPO'] = os.environ['SERVICE_API_IMAGE_NAME'].split(':')[0]
     os.environ['SERVICE_API_IMAGE_TAG'] = os.environ['SERVICE_API_IMAGE_NAME'].split(':')[1]
 
+def set_gh_pat_token():
+    """
+    Gets the GitHub PAT token from the environment variables.
+    """
+    if os.environ.get("AZURE_AKS_ENVIRONMENT_NAME") is None:
+        raise ValueError(
+            "No AZURE_AKS_ENVIRONMENT_NAME environment variable found. Please set the \
+                "
+        )
+
+    azure_client = AzureClient()
+    bb_keyvault = azure_client.get_keyvault(
+        os.environ.get("AZURE_AKS_ENVIRONMENT_NAME"), 
+        os.environ.get("AZURE_SUBSCRIPTION_ID"), 
+        os.environ.get("AZURE_RESOURCE_GROUP")
+    )
+
+    if bb_keyvault is None:
+        raise ValueError(
+            "No key vaults found. Please create a key vault and set the \
+        azd-keyvault-name tag."
+        )
+
+    pat_token = azure_client.get_keyvault_secret(bb_keyvault, "githubToken")
+    if pat_token is not None:
+        azure_client.set_azd_env_variable("GITHUB_TOKEN", pat_token, True)
+
 def copy_manifest_dir_tree_to_repo(manifest_path, repo_path):
     """
     Recursively searches for files ending with a .tmpl extension under manifest_path
@@ -88,6 +116,7 @@ if __name__ == "__main__":
     git_client = GithubClient()
 
     print("Logging in to GitHub...")
+    set_gh_pat_token()
     git_client.login()
 
     if os.environ.get("GITHUB_TOKEN") is None:

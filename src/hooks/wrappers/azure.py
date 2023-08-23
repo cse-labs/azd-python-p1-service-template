@@ -1,7 +1,11 @@
+import subprocess
+import os
+
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.containerservice import ContainerServiceClient
 from azure.mgmt.subscription import SubscriptionClient
-from azure.core.exceptions import HttpResponseError, ClientAuthenticationError, ResourceNotFoundError
+from azure.core.exceptions import HttpResponseError, ClientAuthenticationError, \
+    ResourceNotFoundError
 from azure.mgmt.keyvault import KeyVaultManagementClient
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.containerregistry import ContainerRegistryManagementClient
@@ -19,6 +23,29 @@ class AzureClient:
 
     def __init__(self):
         self._credential = DefaultAzureCredential()
+
+    def set_azd_env_variable(self, name, value, export=False):
+        """
+        Sets an Azure Developer CLI environment variable with the given name and value.
+
+        Args:
+            name (str): The name of the environment variable to set.
+            value (str): The value to set for the environment variable.
+
+        Returns:
+            None
+        """
+        print(f"Setting {name} environment variable...")
+        try:
+            standard_out = subprocess.check_output(["azd", "env", "set", name, value], \
+                universal_newlines=True)
+            print(standard_out)
+
+            if export:
+                os.environ[name] = value
+
+        except subprocess.CalledProcessError as ex:
+            print(f" Error: {ex.output}")
 
     def get_active_subscription_id(self):
         """
