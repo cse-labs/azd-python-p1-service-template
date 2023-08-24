@@ -25,15 +25,27 @@ jobs:
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       GITOPS_REPO: ${{ vars.GITOPS_REPO }}
+      AZURE_AKS_CLUSTER_NAME: ${{ vars.AZURE_AKS_CLUSTER_NAME }}
+      AZURE_KEY_VAULT_NAME: ${{ vars.AZURE_KEY_VAULT_NAME }}
+      PYTHON_VERSION: 3.11.4
+      PYTHON_PIP_REQUIREMENTS: requirements-dev.txt
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install azd
         uses: Azure/setup-azd@v0.1.0
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip' # caching pip dependencies
+      - name: Install Python Dependencies
+        working-directory: src
+        run: pip install -r ${{ env.PYTHON_PIP_REQUIREMENTS }}
       - name: pre validation
         shell: bash
         run: |
-            for varName in GITHUB_TOKEN AZURE_ENV_NAME AZURE_LOCATION AZURE_SUBSCRIPTION_ID GITOPS_REPO AZURE_TENANT_ID; do
+            for varName in AZURE_KEY_VAULT_NAME GITHUB_TOKEN AZURE_ENV_NAME AZURE_AKS_CLUSTER_NAME AZURE_LOCATION AZURE_SUBSCRIPTION_ID AZURE_TENANT_ID; do
                 varVal=$(eval echo "\${$varName}")
                 [[ -z $varVal ]] && {
                 echo "💥 Error! Required env variable or secret '$varName' is not set!"

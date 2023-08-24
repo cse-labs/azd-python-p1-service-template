@@ -20,7 +20,7 @@ function pre_validation () {
         exit
   }
 
-  for varName in AZURE_AKS_CLUSTER_NAME GITHUB_TOKEN; do
+  for varName in AZURE_AKS_CLUSTER_NAME GITHUB_TOKEN AZURE_KEY_VAULT_NAME; do
     varVal=$(eval echo "\${$varName}")
     [[ -z $varVal ]] && {
       echo "💥 Error! Required variable '$varName' is not set!"
@@ -35,7 +35,7 @@ GIT_CONTROLLER_REPO=$(echo $GIT_CONTROLLER_URL | sed 's|https://github.com/||')
 
 gh secret set GH_TOKEN --body "${GITHUB_TOKEN}" --repo $GIT_CONTROLLER_REPO
 
-for env in AZURE_AKS_CLUSTER_NAME; do
+for env in AZURE_AKS_CLUSTER_NAME AZURE_KEY_VAULT_NAME; do
   echo "setting env variable: ${env} in repo: ${GIT_CONTROLLER_REPO}"
   envVal=$(eval echo "\${$env}")
   gh variable set $env --body "${envVal}" --repo $GIT_CONTROLLER_REPO

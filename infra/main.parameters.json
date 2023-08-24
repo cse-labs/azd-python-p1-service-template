@@ -7,6 +7,12 @@
       },
       "location": {
         "value": "${AZURE_LOCATION}"
+      },
+      "keyVaultName": {
+        "value": "${AZURE_KEY_VAULT_NAME}"
+      },
+      "principalId": {
+        "value": "${AZURE_PRINCIPAL_ID}"
       }
     }
   }
