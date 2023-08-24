@@ -5,7 +5,7 @@ param keyVaultName string
 @description('Specifies the object ID of the federated app dev principal identity.')
 param principalId string
 
-param policyName string = 'app-dev-secret-get'
+param policyName string = 'add'
 
 @description('Specifies the permissions to secrets in the vault. Valid values are: all, get, list, set, delete, backup, restore, recover, and purge.')
 param secretsPermissions array = [

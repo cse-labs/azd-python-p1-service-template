@@ -1,54 +1,19 @@
 import subprocess
 import os
-import tempfile
 import git
 
-class GithubClient:
-    """
-    A class that provides methods for interacting with the GitHub API 
-    and performing common Git operations.
-    """
-    def login(self):
+class GitClient:
+    def __init__(self, gh_pat):
         """
         Logs in to GitHub using either the GITHUB_TOKEN environment variable or the gh CLI.
         """
-        gh_pat = os.environ.get("GITHUB_TOKEN")
+        # Clone private repository using GITHUB_TOKEN
 
         if gh_pat is None:
-            self.__run_gh_cli_command("auth", ["login"])
-        else:
-            self.__unset_gh_pat()
-            self.__run_gh_cli_command("auth", ["logout"])
-            self.__login_with_pat(gh_pat)
+            raise ValueError("No GitHub PAT token found. Please create a GitHub PAT and set the \
+                             GITHUB_TOKEN environment variable.")
 
-        self.__run_gh_cli_command("auth", ["setup-git"])
-        self.__run_gh_cli_command("auth", ["status"])
-        os.environ["GITHUB_TOKEN"] = gh_pat
-
-    def __login_with_pat(self, gh_pat):
-        """
-        Logs in to GitHub using a personal access token (PAT).
-        """
-        with tempfile.TemporaryDirectory() as td_hndl:
-            token_file = os.path.join(td_hndl, 'token')
-            with open(token_file, 'w', encoding="utf-8") as file_hndl:
-                file_hndl.write(gh_pat)
-                file_hndl.close()
-                self.__run_gh_cli_command("auth", ["login", f"--with-token < {token_file}"])
-
-    def clone_repo(self, repo_name, target_branch, directory):
-        """
-        Clones a GitHub repository to a local directory.
-        """
-        if repo_name is None:
-            raise ValueError("repo_name cannot be None")
-
-        git_url = f"https://github.com/{repo_name}"
-
-        try:
-            git.Repo.clone_from(git_url, directory, branch=target_branch)
-        except git.exc.GitCommandError as ex:
-            print(f"Error cloning repo {repo_name}: Exception: {ex}")
+        self.pat_token = gh_pat
 
     def push_changes(self, repo_dir, commit_message):
         """
@@ -86,8 +51,18 @@ class GithubClient:
         """
         return self.__run_command(["gh", command] + args)
 
-    def __unset_gh_pat(self):
+    def clone_repo(self, repo_name, target_branch, directory):
         """
-        Unsets the GITHUB_TOKEN environment variable.
+        Clones a GitHub repository to a local directory.
         """
-        del os.environ["GITHUB_TOKEN"]
+        if repo_name is None:
+            raise ValueError("repo_name cannot be None")
+
+        git_url = f"https://{self.pat_token}@github.com/{repo_name}"
+        self.__run_gh_cli_command("auth", ["setup-git"])
+
+        try:
+            git.Repo.clone_from(git_url, directory, branch=target_branch, \
+                                env={"GITHUB_TOKEN": os.environ.get("GITHUB_TOKEN")})
+        except git.exc.GitCommandError as ex:
+            print(f"Error cloning repo {repo_name}: Exception: {ex}")

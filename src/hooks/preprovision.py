@@ -1,8 +1,6 @@
 import os
 from pick import pick
-from wrappers.azure import AzureClient, set_azd_env_variable, \
-    AZD_ENVIRONMENT_NAME_RESOURCE_TAG
-
+from wrappers.azure import AzureClient, AZD_ENVIRONMENT_NAME_RESOURCE_TAG
 
 def prompt_user_for_target_clusters(clusters):
     """

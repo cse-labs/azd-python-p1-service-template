@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 import shutil
 import yaml
-from wrappers.github import GithubClient
+from wrappers.github import GitClient
 from wrappers.azure import AzureClient
 from wrappers.renderer import RenderEngine
 
@@ -113,11 +113,10 @@ if __name__ == "__main__":
     set_env_from_azd()
     pre_req_assertions(TEMPLATE_FILE)
     environment_name = os.environ.get("AZURE_AKS_ENVIRONMENT_NAME")
-    git_client = GithubClient()
-
     print("Logging in to GitHub...")
     set_gh_pat_token()
-    git_client.login()
+    gh_pat = os.environ.get("GITHUB_TOKEN")
+    git_client = GitClient(gh_pat)
 
     if os.environ.get("GITHUB_TOKEN") is None:
         raise ValueError(
