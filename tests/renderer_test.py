@@ -15,8 +15,10 @@ def render_engine():
 def test_retrieve_files_to_render(render_engine):
     files_to_render = render_engine._RenderEngine__retrieve_files_to_render()
     assert len(files_to_render) == 6
-    assert "/workspaces/azd-python-p1-service-template/src/api/manifests/namespace.yaml.tmpl" in files_to_render
-    assert "/workspaces/azd-python-p1-service-template/src/api/manifests/repository.yaml.tmpl" in files_to_render
+    assert "/workspaces/azd-python-p1-service-template/src/api/manifests/namespace.yaml.tmpl" \
+        in files_to_render
+    assert "/workspaces/azd-python-p1-service-template/src/api/manifests/repository.yaml.tmpl" \
+        in files_to_render
 
 def test_add_service_to_kustomization_resources(render_engine):
     with tempfile.TemporaryDirectory() as test_dir:
