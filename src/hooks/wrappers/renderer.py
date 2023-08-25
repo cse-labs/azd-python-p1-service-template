@@ -1,12 +1,15 @@
 import os
 import subprocess
+
 import yaml
+
 
 class RenderEngine:
     """
-    The RenderEngine class provides functionality to render K8 templates 
+    The RenderEngine class provides functionality to render K8 templates
     and add a service to a kustomization file.
     """
+
     def __init__(self, path, kustomization_path, service_name):
         """
         Initializes a new instance of the RenderEngine class.
@@ -60,8 +63,7 @@ class RenderEngine:
             The output of the command.
         """
         try:
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT, \
-                                             universal_newlines=True, shell=True)
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True, shell=True)
             return output.strip()
         except subprocess.CalledProcessError as ex:
             print(f"Error: {ex.output}")
@@ -73,11 +75,9 @@ class RenderEngine:
         """
         # verify that the kustomization file exists
         if not os.path.exists(self.kustomization_path):
-            raise ValueError(
-                f"The kustomization file {self.kustomization_path} does not exist."
-            )
+            raise ValueError(f"The kustomization file {self.kustomization_path} does not exist.")
 
-        with open(self.kustomization_path, "r", encoding="utf-8") as r_stream:
+        with open(self.kustomization_path, encoding="utf-8") as r_stream:
             yaml_dict = yaml.safe_load(r_stream)
             # check if the resources key exists
 
@@ -103,8 +103,7 @@ class RenderEngine:
             The output of the command.
         """
         try:
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT, \
-                                             universal_newlines=True, shell=True)
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True, shell=True)
             return output.strip()
         except subprocess.CalledProcessError as ex:
             print(f"Error: {ex.output}")

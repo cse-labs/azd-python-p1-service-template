@@ -1,0 +1,28 @@
+name: Python package and integration tasks
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: 3.11.4
+      PYTHON_PIP_REQUIREMENTS: requirements-dev.txt
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip' # caching pip dependencies
+      - name: Install Python Dependencies
+        working-directory: src
+        run: pip install -r ${{ env.PYTHON_PIP_REQUIREMENTS }}
+      - name: Lint with ruff
+        working-directory: src
+        run: |
+          ruff check . --format=github --select=E9,F63,F7,F82 --target-version=py37 --config pyproject.toml
+      - name: Test with pytest
+        working-directory: tests
+        run: |
+          pytest . --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html

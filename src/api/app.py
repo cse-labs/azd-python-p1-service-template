@@ -1,10 +1,10 @@
 import logging
 
-from flask import jsonify, Blueprint
+import randomname
+from flask import Blueprint, jsonify
 from opencensus.trace import config_integration
 from opencensus.trace.samplers import AlwaysOnSampler
 from opencensus.trace.tracer import Tracer
-import randomname
 
 bp = Blueprint("names", __name__)
 config_integration.trace_integrations(['logging'])

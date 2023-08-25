@@ -1,6 +1,8 @@
-import subprocess
 import os
+import subprocess
+
 import git
+
 
 class GitClient:
     def __init__(self, gh_pat):
@@ -10,8 +12,10 @@ class GitClient:
         # Clone private repository using GITHUB_TOKEN
 
         if gh_pat is None:
-            raise ValueError("No GitHub PAT token found. Please create a GitHub PAT and set the \
-                             GITHUB_TOKEN environment variable.")
+            raise ValueError(
+                "No GitHub PAT token found. Please create a GitHub PAT and set the \
+                             GITHUB_TOKEN environment variable."
+            )
 
         self.pat_token = gh_pat
 
@@ -38,8 +42,7 @@ class GitClient:
         Runs a command in the shell and returns its output.
         """
         try:
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT, \
-                                             universal_newlines=True, shell=True)
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True, shell=True)
             return output.strip()
         except subprocess.CalledProcessError as ex:
             print(f"Error: {ex.output}")
@@ -62,7 +65,8 @@ class GitClient:
         self.__run_gh_cli_command("auth", ["setup-git"])
 
         try:
-            git.Repo.clone_from(git_url, directory, branch=target_branch, \
-                                env={"GITHUB_TOKEN": os.environ.get("GITHUB_TOKEN")})
+            git.Repo.clone_from(
+                git_url, directory, branch=target_branch, env={"GITHUB_TOKEN": os.environ.get("GITHUB_TOKEN")}
+            )
         except git.exc.GitCommandError as ex:
             print(f"Error cloning repo {repo_name}: Exception: {ex}")

@@ -1,14 +1,13 @@
-import subprocess
 import os
+import subprocess
 
+from azure.core.exceptions import ClientAuthenticationError, HttpResponseError, ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
-from azure.mgmt.containerservice import ContainerServiceClient
-from azure.mgmt.subscription import SubscriptionClient
-from azure.core.exceptions import HttpResponseError, ClientAuthenticationError, \
-    ResourceNotFoundError
-from azure.mgmt.keyvault import KeyVaultManagementClient
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.containerregistry import ContainerRegistryManagementClient
+from azure.mgmt.containerservice import ContainerServiceClient
+from azure.mgmt.keyvault import KeyVaultManagementClient
+from azure.mgmt.subscription import SubscriptionClient
 
 AZD_ENVIRONMENT_NAME_RESOURCE_TAG = "azd-env-name"
 
@@ -37,8 +36,7 @@ class AzureClient:
         """
         print(f"Setting {name} environment variable...")
         try:
-            standard_out = subprocess.check_output(["azd", "env", "set", name, value], \
-                universal_newlines=True)
+            standard_out = subprocess.check_output(["azd", "env", "set", name, value], universal_newlines=True)
             print(standard_out)
 
             if export:
@@ -179,7 +177,7 @@ class AzureClient:
         Retrieves the specified secret from the specified Azure Key Vault.
 
         Args:
-            keyvault (KeyVault): The KeyVault object representing the Azure Key 
+            keyvault (KeyVault): The KeyVault object representing the Azure Key
             Vault to retrieve the secret from.
             secret_name (str): The name of the secret to retrieve.
 
@@ -191,8 +189,7 @@ class AzureClient:
                 raise ValueError("KeyVault is None")
 
             # Get the secret from the keyvault
-            secret_client = SecretClient(vault_url=keyvault.properties.vault_uri, \
-                                         credential=self._credential)
+            secret_client = SecretClient(vault_url=keyvault.properties.vault_uri, credential=self._credential)
             if secret_client is None:
                 raise ValueError("SecretClient is None")
 
@@ -201,7 +198,6 @@ class AzureClient:
 
             # Return the secret value
             return secret.value
-        except (HttpResponseError, ClientAuthenticationError, \
-                ValueError, ResourceNotFoundError) as exc:
+        except (HttpResponseError, ClientAuthenticationError, ValueError, ResourceNotFoundError) as exc:
             print(f"Error occurred while getting the KeyVault secret {secret_name}: {exc}")
             return None

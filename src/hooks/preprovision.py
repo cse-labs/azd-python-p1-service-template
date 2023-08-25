@@ -1,6 +1,8 @@
 import os
+
 from pick import pick
-from wrappers.azure import AzureClient, AZD_ENVIRONMENT_NAME_RESOURCE_TAG
+from wrappers.azure import AZD_ENVIRONMENT_NAME_RESOURCE_TAG, AzureClient
+
 
 def prompt_user_for_target_clusters(clusters):
     """
@@ -39,6 +41,7 @@ def prompt_user_for_target_clusters(clusters):
     _, index = pick(options, title)
 
     return clusters[index - 1]
+
 
 if __name__ == "__main__":
     print("Pre-provisioning hook running...")
@@ -90,12 +93,12 @@ if __name__ == "__main__":
     client.set_azd_env_variable("AZURE_KEY_VAULT_NAME", bb_keyvault.name)
     client.set_azd_env_variable("AZURE_AKS_KV_PROVIDER_CLIENT_ID", kubelet_identity.client_id)
     client.set_azd_env_variable("AZURE_RESOURCE_GROUP", resource_group_name)
-    client.set_azd_env_variable("AZURE_AKS_ENVIRONMENT_NAME", \
-        target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], True)
+    client.set_azd_env_variable(
+        "AZURE_AKS_ENVIRONMENT_NAME", target_cluster.tags[AZD_ENVIRONMENT_NAME_RESOURCE_TAG], True
+    )
     client.set_azd_env_variable("AZURE_TENANT_ID", tenant_id)
     client.set_azd_env_variable("AZURE_CONTAINER_REGISTRY_ENDPOINT", registry.login_server)
-    client.set_azd_env_variable("GITOPS_REPO_RELEASE_BRANCH", \
-        target_cluster.tags["gitops-release-branch"], True)
+    client.set_azd_env_variable("GITOPS_REPO_RELEASE_BRANCH", target_cluster.tags["gitops-release-branch"], True)
     client.set_azd_env_variable("GITOPS_REPO", target_cluster.tags["gitops-repo"], True)
 
     print("Pre-provisioning hook complete.")
