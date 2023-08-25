@@ -42,7 +42,8 @@ class GitClient:
         Runs a command in the shell and returns its output.
         """
         try:
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True, shell=True)
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, \
+                universal_newlines=True, shell=True)
             return output.strip()
         except subprocess.CalledProcessError as ex:
             print(f"Error: {ex.output}")
@@ -66,7 +67,8 @@ class GitClient:
 
         try:
             git.Repo.clone_from(
-                git_url, directory, branch=target_branch, env={"GITHUB_TOKEN": os.environ.get("GITHUB_TOKEN")}
+                git_url, directory, branch=target_branch, \
+                    env={"GITHUB_TOKEN": os.environ.get("GITHUB_TOKEN")}
             )
         except git.exc.GitCommandError as ex:
             print(f"Error cloning repo {repo_name}: Exception: {ex}")

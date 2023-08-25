@@ -1,7 +1,8 @@
 import os
 import subprocess
 
-from azure.core.exceptions import ClientAuthenticationError, HttpResponseError, ResourceNotFoundError
+from azure.core.exceptions import ClientAuthenticationError, \
+    HttpResponseError, ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.containerregistry import ContainerRegistryManagementClient
@@ -36,7 +37,8 @@ class AzureClient:
         """
         print(f"Setting {name} environment variable...")
         try:
-            standard_out = subprocess.check_output(["azd", "env", "set", name, value], universal_newlines=True)
+            standard_out = subprocess.check_output(["azd", "env", "set", name, value], \
+                universal_newlines=True)
             print(standard_out)
 
             if export:
@@ -101,8 +103,10 @@ class AzureClient:
             List of ContainerRegistry objects, or None if an error occurred.
         """
         try:
-            container_registry_client = ContainerRegistryManagementClient(self._credential, subscription_id)
-            registries = container_registry_client.registries.list_by_resource_group(resource_group_name)
+            container_registry_client = ContainerRegistryManagementClient(self._credential, \
+                subscription_id)
+            registries = container_registry_client.registries.list_by_resource_group\
+                (resource_group_name)
 
             reduced_registries = [
                 registry
@@ -189,7 +193,8 @@ class AzureClient:
                 raise ValueError("KeyVault is None")
 
             # Get the secret from the keyvault
-            secret_client = SecretClient(vault_url=keyvault.properties.vault_uri, credential=self._credential)
+            secret_client = SecretClient(vault_url=keyvault.properties.vault_uri, \
+                credential=self._credential)
             if secret_client is None:
                 raise ValueError("SecretClient is None")
 
@@ -198,6 +203,8 @@ class AzureClient:
 
             # Return the secret value
             return secret.value
-        except (HttpResponseError, ClientAuthenticationError, ValueError, ResourceNotFoundError) as exc:
-            print(f"Error occurred while getting the KeyVault secret {secret_name}: {exc}")
+        except (HttpResponseError, ClientAuthenticationError, ValueError, \
+            ResourceNotFoundError) as exc:
+            print(f"Error occurred while getting the KeyVault secret \
+                {secret_name}: {exc}")
             return None
